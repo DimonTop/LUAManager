@@ -166,7 +166,7 @@ namespace LUAManager
             radioButtonEncrypt.Checked = true;
             assemblePanel.Visible = false;
         }
-        public void OpenSSL(string parameters) //Run the OpenSSL program
+        public void OpenSSL(string parameters)
         {
             Info.psi.FileName = Directory.GetCurrentDirectory() + "\\extras\\openssl.exe";
             Info.psi.UseShellExecute = false;
@@ -176,7 +176,7 @@ namespace LUAManager
             Process proc = Process.Start(Info.psi);
             proc.WaitForExit();
         }
-        public void SevenZipFile(string arguments) //Run the 7-zip program
+        public void SevenZipFile(string arguments)
         {
             ProcessStartInfo sevenZip = new ProcessStartInfo();
             sevenZip.FileName = Directory.GetCurrentDirectory() + "\\extras\\7za.exe";
@@ -187,7 +187,7 @@ namespace LUAManager
             Process sevenZipExe = Process.Start(sevenZip);
             sevenZipExe.WaitForExit();
         }
-        public void Unluac(string arguments, string file) //Run the Unluac program
+        public void Unluac(string arguments, string file)
         {
             ProcessStartInfo java = new ProcessStartInfo();
             java.FileName = Directory.GetCurrentDirectory() + "\\extras\\" + file + ".bat";
@@ -198,7 +198,7 @@ namespace LUAManager
             Process javaExe = Process.Start(java);
             javaExe.WaitForExit();
         }
-        public void LZMA(string arguments) //Run the LZMA program
+        public void LZMA(string arguments)
         {
             ProcessStartInfo lzmaProg = new ProcessStartInfo();
             lzmaProg.FileName = Directory.GetCurrentDirectory() + "\\extras\\lzma.exe";
@@ -242,7 +242,6 @@ namespace LUAManager
                 string lastFile = "";
                 foreach (var file in fileInfos)
                 {
-                    // Определяем относительный путь (чтобы сохранить структуру)
                     string savePath = (fileRadio.Checked)
                         ? saveFileDialog1.FileName
                         : (checkBoxFolderMode.Checked
@@ -254,7 +253,6 @@ namespace LUAManager
                         Directory.CreateDirectory(Path.GetDirectoryName(savePath));
                     }
 
-                    //Check if the file's first 4 bytes
                     {
                         string header = ReadChars(file.FullName, 4)[1].ToString() + ReadChars(file.FullName, 4)[2] + ReadChars(file.FullName, 4)[3];
                         if (((action == "decode" || action == "disassemble") & header == "Lua") || (action == "assemble" & header == "ver"))
@@ -330,7 +328,7 @@ namespace LUAManager
         {
             string keyToUse = "";
             SoundPlayer simpleSound = new SoundPlayer(Directory.GetCurrentDirectory() + "\\extras\\letsgo.wav");
-            if (Info.whatWereDoing == "encrypt") //Encrypt functions
+            if (Info.whatWereDoing == "encrypt")
             {
                 keyToUse = GetCurrentKey(encryptGameSelect.SelectedIndex, customKeyEnc.Text, checkBoxDataMode.Checked);
                 if (encryptInputFile.Text == "")
@@ -353,8 +351,6 @@ namespace LUAManager
                 {
                     letsGoText.Text = "Getting ready to go, please wait...";
                     letsGoText.Visible = true;
-
-                    // Получаем все файлы .lua и .json (включая подпапки)
                     FileInfo[] fileInfos = (fileRadio.Checked)
                         ? new FileInfo[] { new FileInfo(openFileDialog1.FileName) }
                         : new DirectoryInfo(folderBrowserDialog1.SelectedPath)
@@ -368,7 +364,6 @@ namespace LUAManager
 
                     foreach (var file in fileInfos)
                     {
-                        // Определяем относительный путь (чтобы сохранить структуру)
                         string savePath = (fileRadio.Checked)
                             ? saveFileDialog1.FileName
                             : (checkBoxFolderMode.Checked
@@ -427,147 +422,119 @@ namespace LUAManager
                     letsGoText.Visible = false;
                 }
             }
-            if (Info.whatWereDoing == "decrypt") //Decrypt functions
+            if (Info.whatWereDoing == "decrypt")
             {
                 keyToUse = GetCurrentKey(decryptGameSelect.SelectedIndex, customKeyDec.Text, checkBoxDataMode.Checked);
                 if (decryptInputFile.Text == "")
                 {
                     MessageBox.Show("You have not selected a " + ((fileRadio.Checked) ? "file" : "folder of files") + " to decrypt", "Please choose a folder", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
                 else if (decryptOutputFile.Text == "")
                 {
                     MessageBox.Show("You have not specified a " + ((fileRadio.Checked) ? "file" : "folder") + " to export to", "Please choose a folder", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
                 else if (decryptInputFile.Text == decryptOutputFile.Text)
                 {
-                    MessageBox.Show("The input and output " + ((fileRadio.Checked) ? "file" : "folder") + " cannot be the same because you\ncannot write to a files while they're being read.", "Overwrite Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("The input and output " + ((fileRadio.Checked) ? "file" : "folder") + " cannot be the same because you\ncannot write to files while they're being read.", "Overwrite Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
                 else if (decryptGameSelect.SelectedIndex == 8 && customKeyDec.Text == "")
                 {
                     MessageBox.Show("You need to paste a key into the box in order to use this option.", "No key entered", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
                 }
-                else
+                letsGoText.Text = "Getting ready to go, please wait...";
+                letsGoText.Visible = true;
+                FileInfo[] fileInfos = (fileRadio.Checked)
+                    ? new FileInfo[] { new FileInfo(openFileDialog1.FileName) }
+                    : new DirectoryInfo(folderBrowserDialog1.SelectedPath).GetFiles("*.*", checkBoxFolderMode.Checked ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly).Where(file => file.Extension.Equals(".lua", StringComparison.OrdinalIgnoreCase) || file.Extension.Equals(".json", StringComparison.OrdinalIgnoreCase)).ToArray();
+                string sourceFolder = fileRadio.Checked
+                    ? Path.GetDirectoryName(openFileDialog1.FileName)
+                    : folderBrowserDialog1.SelectedPath;
+                string targetFolder = fileRadio.Checked
+                    ? Path.GetDirectoryName(saveFileDialog1.FileName)
+                    : folderBrowserDialog2.SelectedPath;
+                foreach (var file in fileInfos)
                 {
-                    letsGoText.Text = "Getting ready to go, please wait...";
-                    letsGoText.Visible = true;
-
-                    // Получаем все файлы (включая подпапки)
-                    FileInfo[] fileInfos = (fileRadio.Checked)
-                       ? new FileInfo[] { new FileInfo(openFileDialog1.FileName) }
-                       : new DirectoryInfo(folderBrowserDialog1.SelectedPath)
-                           .GetFiles("*.*", checkBoxFolderMode.Checked ? SearchOption.AllDirectories : SearchOption.TopDirectoryOnly)
-                           .Where(file => file.Extension.Equals(".lua", StringComparison.OrdinalIgnoreCase) ||
-                                          file.Extension.Equals(".json", StringComparison.OrdinalIgnoreCase))
-                           .ToArray();
-
-                    string sourceFolder = folderBrowserDialog1.SelectedPath;
-                    string targetFolder = folderBrowserDialog2.SelectedPath;
-
-                    foreach (var file in fileInfos)
+                    string savePath;
+                    if (fileRadio.Checked)
                     {
-                        // Определяем относительный путь (чтобы сохранить структуру)
-                        string savePath = (fileRadio.Checked)
-                            ? saveFileDialog1.FileName
-                            : (checkBoxFolderMode.Checked
-                                ? Path.Combine(targetFolder, file.FullName.Substring(sourceFolder.Length).TrimStart('\\'))
-                                : Path.Combine(targetFolder, file.Name));
-
-                        if (!fileRadio.Checked && checkBoxFolderMode.Checked)
+                        savePath = saveFileDialog1.FileName;
+                    }
+                    else
+                    {
+                        if (checkBoxFolderMode.Checked)
                         {
+                            string relativePath = file.FullName.Substring(sourceFolder.Length).TrimStart('\\', '/');
+                            savePath = Path.Combine(targetFolder, relativePath);
                             Directory.CreateDirectory(Path.GetDirectoryName(savePath));
                         }
-
-                        // Декодируем файл во временный файл
-                        OpenSSL("enc -d -K " + keyToUse + " -iv 00 -aes-256-cbc -in " + "\"" + file.FullName + "\"" + " -out " + "\"" + Directory.GetCurrentDirectory() + "\\extras\\temp.bin" + "\"");
-
-                        string header;
-                        bool passed7zCheck = false;
-
-                        if (autoUnzip.Checked)
+                        else
                         {
-                            header = ReadChars(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", 2)[0].ToString() +
-                                     ReadChars(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", 2)[1];
-
-                            if (header == "7z")
-                            {
-                                passed7zCheck = true;
-                                // Для 7z сохраняем в ту же структуру папок
-                                string outputFolder = Path.GetDirectoryName(savePath);
-                                SevenZipFile("e -y " + "\"" + Directory.GetCurrentDirectory() + "\\extras\\temp.bin" + "\"" +
-                                             " -o\"" + outputFolder + "\"");
-                            }
-                            else if (!autoUnlzma.Checked)
-                            {
-                                File.Copy(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", savePath, true);
-                            }
-                        }
-
-                        if (autoUnlzma.Checked && !passed7zCheck)
-                        {
-                            header = ReadChars(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", 5)[1].ToString() +
-                                     ReadChars(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", 5)[2] +
-                                     ReadChars(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", 5)[3] +
-                                     ReadChars(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", 5)[4];
-
-                            if (header == "LZMA")
-                            {
-                                byte[] x = File.ReadAllBytes(Directory.GetCurrentDirectory() + "\\extras\\temp.bin");
-                                byte[] temp = new byte[x.Length - 9];
-                                long tempx = 0;
-
-                                for (long i = 9; i < x.LongLength; i++)
-                                {
-                                    temp[tempx] = x[i];
-                                    tempx++;
-                                }
-
-                                File.WriteAllBytes(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", temp);
-                                LZMA("d " + "\"" + Directory.GetCurrentDirectory() + "\\extras\\temp.bin" + "\"" +
-                                     " \"" + savePath + "\"");
-                            }
-                            else
-                            {
-                                File.Copy(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", savePath, true);
-                            }
-                        }
-
-                        if (!autoUnzip.Checked && !autoUnlzma.Checked)
-                        {
-                            File.Copy(Directory.GetCurrentDirectory() + "\\extras\\temp.bin", savePath, true);
-                        }
-
-                        // Удаляем временный файл
-                        if (File.Exists(Directory.GetCurrentDirectory() + "\\extras\\temp.bin"))
-                        {
-                            File.Delete(Directory.GetCurrentDirectory() + "\\extras\\temp.bin");
+                            savePath = Path.Combine(targetFolder, file.Name);
                         }
                     }
-
-                    simpleSound.Play();
-                    letsGoText.Text = "LET'S GOOO!";
-
-                    string message = (fileRadio.Checked)
-                        ? ("The LUA file has been exported in decrypted form to\n" + saveFileDialog1.FileName + "!")
-                        : ("All LUA files in " + folderBrowserDialog1.SelectedPath + " have been exported in decrypted form to\n" + targetFolder + "!");
-
-                    MessageBox.Show(message, "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    letsGoText.Visible = false;
+                    string tempFilePath = Path.Combine(Directory.GetCurrentDirectory(), "extras", "temp.bin");
+                    OpenSSL($"enc -d -K {keyToUse} -iv 00 -aes-256-cbc -in \"{file.FullName}\" -out \"{tempFilePath}\"");
+                    bool processed = false;
+                    if (autoUnzip.Checked)
+                    {
+                        string header = ReadChars(tempFilePath, 2)[0].ToString() + ReadChars(tempFilePath, 2)[1];
+                        if (header == "7z")
+                        {
+                            processed = true;
+                            SevenZipFile($"e -y \"{tempFilePath}\" -o\"{Path.GetDirectoryName(savePath)}\"");
+                        }
+                    }
+                    if (autoUnlzma.Checked && !processed)
+                    {
+                        string header = ReadChars(tempFilePath, 5)[1].ToString() +
+                                       ReadChars(tempFilePath, 5)[2] +
+                                       ReadChars(tempFilePath, 5)[3] +
+                                       ReadChars(tempFilePath, 5)[4];
+                        if (header == "LZMA")
+                        {
+                            processed = true;
+                            byte[] data = File.ReadAllBytes(tempFilePath);
+                            byte[] newData = new byte[data.Length - 9];
+                            Array.Copy(data, 9, newData, 0, newData.Length);
+                            File.WriteAllBytes(tempFilePath, newData);
+                            LZMA($"d \"{tempFilePath}\" \"{savePath}\"");
+                        }
+                    }
+                    if (!processed)
+                    {
+                        File.Copy(tempFilePath, savePath, overwrite: true);
+                    }
+                    if (File.Exists(tempFilePath))
+                    {
+                        File.Delete(tempFilePath);
+                    }
                 }
+                simpleSound.Play();
+                letsGoText.Text = "LET'S GOOO!";
+                string message = fileRadio.Checked
+                    ? $"The LUA file has been exported in decrypted form to\n{saveFileDialog1.FileName}!"
+                    : $"All LUA files in {folderBrowserDialog1.SelectedPath} have been exported in decrypted form to\n{targetFolder}!";
+                MessageBox.Show(message, "Success!", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                letsGoText.Visible = false;
             }
-            if (Info.whatWereDoing == "decode") //Decode functions
+            if (Info.whatWereDoing == "decode")
             {
                 BatFile(decodeInputFile.Text, decodeOutputFile.Text, "decode", simpleSound);
             }
-            if (Info.whatWereDoing == "assemble") //ассембл
+            if (Info.whatWereDoing == "assemble")
             {
                 BatFile(labelAssembleInput.Text, labelAssembleOutput.Text, "assemble", simpleSound);
             }
-            if (Info.whatWereDoing == "disassemble") //дизассембл
+            if (Info.whatWereDoing == "disassemble")
             {
                 BatFile(labelDisassembleInput.Text, labelDisassembleOutput.Text, "disassemble", simpleSound);
             }
         }
-        private void button2_Click(object sender, EventArgs e) //Encrypt Input
+        private void button2_Click(object sender, EventArgs e)
         {
             encryptInputFile.Visible = true;
             if (fileRadio.Checked)
@@ -582,7 +549,7 @@ namespace LUAManager
             }
         }
 
-        private void button1_Click_1(object sender, EventArgs e) //Encrypt Output
+        private void button1_Click_1(object sender, EventArgs e)
         {
             encryptOutputFile.Visible = true;
             if (fileRadio.Checked)
@@ -596,7 +563,7 @@ namespace LUAManager
                 encryptOutputFile.Text = folderBrowserDialog2.SelectedPath;
             }
         }
-        private void button3_Click(object sender, EventArgs e) //Decrypt Input
+        private void button3_Click(object sender, EventArgs e)
         {
             decryptInputFile.Visible = true;
             if (fileRadio.Checked)
@@ -611,7 +578,7 @@ namespace LUAManager
             }
         }
 
-        private void decryptOutputFileButton_Click(object sender, EventArgs e) //Decrypt Output
+        private void decryptOutputFileButton_Click(object sender, EventArgs e)
         {
             decryptOutputFile.Visible = true;
             if (fileRadio.Checked)
@@ -626,7 +593,7 @@ namespace LUAManager
             }
         }
 
-        private void button3_Click_1(object sender, EventArgs e) //Decode Input
+        private void button3_Click_1(object sender, EventArgs e)
         {
             decodeInputFile.Visible = true;
             if (fileRadio.Checked)
@@ -641,7 +608,7 @@ namespace LUAManager
             }
         }
 
-        private void button4_Click(object sender, EventArgs e) //Decode Ouput
+        private void button4_Click(object sender, EventArgs e)
         {
             decodeOutputFile.Visible = true;
             if (fileRadio.Checked)
